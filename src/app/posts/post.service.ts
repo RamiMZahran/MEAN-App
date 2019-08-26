@@ -58,7 +58,8 @@ export class PostService {
         _id: id,
         title,
         content,
-        imagePath: image
+        imagePath: image,
+        creator: null
       };
     }
     //    const post: Post = { _id: id, title, content, imagePath: null };
@@ -73,9 +74,12 @@ export class PostService {
   }
 
   getPost(id: string) {
-    return this.http.get<{ message: string; post: Post; imagePath: string }>(
-      'http://localhost:3000/api/posts/' + id
-    );
+    return this.http.get<{
+      message: string;
+      post: Post;
+      imagePath: string;
+      creator: string;
+    }>('http://localhost:3000/api/posts/' + id);
   }
   deletePost(id: string) {
     return this.http.delete<{ message: string }>(

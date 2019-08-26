@@ -39,14 +39,20 @@ router.post(
     const post = new Post({
       title: req.body.title,
       content: req.body.content,
-      imagePath: url + '/images/' + req.file.filename
+      imagePath: url + '/images/' + req.file.filename,
+      creator: req.user._id
     });
-    const savedPost = await post.save();
-
-    res.status(201).json({
-      message: 'Post Added Successfully',
-      post: savedPost
-    });
+    try {
+      const savedPost = await post.save();
+      res.status(201).json({
+        message: 'Post Added Successfully',
+        post: savedPost
+      });
+    } catch {
+      res.status(500).json({
+        message: 'Creating a Post failed!'
+      });
+    }
   }
 );
 
@@ -64,27 +70,47 @@ router.put(
       _id: req.body._id,
       title: req.body.title,
       content: req.body.content,
-      imagePath: imagePath
+      imagePath: imagePath,
+      creator: req.user._id
     });
-    console.log(post);
-    await Post.updateOne({ _id: req.params.id }, post);
-
-    res.status(201).json({
-      message: 'Post Updated Successfully'
-    });
+    try {
+      const result = await Post.updateOne(
+        { _id: req.params.id, creator: req.user._id },
+        post
+      );
+      if (result.nModified > 0) {
+        res.status(201).json({
+          message: 'Post Updated Successfully'
+        });
+      } else {
+        res.status(401).json({
+          message: 'Not Authorized!!'
+        });
+      }
+    } catch {
+      res.status(500).json({
+        message: 'Updating Post failed!'
+      });
+    }
   }
 );
 
 router.get('/:id', async (req, res, next) => {
-  const post = await Post.findById(req.params.id);
-  if (post) {
-    res.status(200).json({
-      message: 'Post Fetched successfully',
-      post
-    });
-  } else {
-    res.status(404).json({
-      message: 'Post Not Found'
+  try {
+    const post = await Post.findById(req.params.id);
+    if (post) {
+      res.status(200).json({
+        message: 'Post Fetched successfully',
+        post
+      });
+    } else {
+      res.status(404).json({
+        message: 'Post Not Found'
+      });
+    }
+  } catch {
+    res.status(500).json({
+      message: 'Fetching Post failed!'
     });
   }
 });
@@ -96,22 +122,43 @@ router.get('', async (req, res, next) => {
   if (pageSize && currentPage) {
     postQuery.skip(pageSize * (currentPage - 1)).limit(pageSize);
   }
-  const posts = await postQuery;
+  try {
+    const posts = await postQuery;
 
-  const count = await Post.count();
+    const count = await Post.count();
 
-  res.status(200).json({
-    message: 'Posts Fetched successfully',
-    maxPosts: count,
-    posts
-  });
+    res.status(200).json({
+      message: 'Posts Fetched successfully',
+      maxPosts: count,
+      posts
+    });
+  } catch {
+    res.status(500).json({
+      message: 'Fetching Posts failed!'
+    });
+  }
 });
 
 router.delete('/:id', checkAuth, async (req, res, next) => {
-  await Post.findByIdAndDelete(req.params.id);
-  res.status(200).json({
-    message: 'Post Deleted successfully'
-  });
+  try {
+    const result = await Post.deleteOne({
+      _id: req.params.id,
+      creator: req.user._id
+    });
+    if (result.n > 0) {
+      res.status(200).json({
+        message: 'Post Deleted successfully'
+      });
+    } else {
+      res.status(401).json({
+        message: 'Not Authorized!!'
+      });
+    }
+  } catch {
+    res.status(500).json({
+      message: 'Deleting Post failed!'
+    });
+  }
 });
 
 module.exports = router;

@@ -20,7 +20,7 @@ router.post('/signup', async (req, res, next) => {
     });
   } catch (err) {
     res.status(500).json({
-      error: err
+      message: 'Invalid Authentication Credentials!'
     });
   }
 });
@@ -29,7 +29,7 @@ router.post('/login', async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
     return res.status(401).json({
-      message: 'Auth Failed'
+      message: 'Invalid Authentication Credentials!'
     });
   }
 
@@ -48,7 +48,8 @@ router.post('/login', async (req, res, next) => {
     );
     res.status(200).json({
       token,
-      expiresIn: 3600
+      expiresIn: 3600,
+      userId: user._id
     });
   } catch (err) {
     return res.status(401).json({

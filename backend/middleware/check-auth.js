@@ -3,7 +3,11 @@ const jwt = require('jsonwebtoken');
 module.exports = (req, res, next) => {
   try {
     const token = req.headers.authorization.split(' ')[1];
-    jwt.verify(token, 'oihoihiuonsdouibgcyb');
+    const decoded = jwt.verify(token, 'oihoihiuonsdouibgcyb');
+    req.user = {
+      email: decoded.email,
+      _id: decoded.userId
+    };
     next();
   } catch (err) {
     res.status(401).json({ message: 'Auth Failed!' });
