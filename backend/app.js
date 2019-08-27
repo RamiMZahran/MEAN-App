@@ -10,7 +10,9 @@ const app = express();
 
 mongoose
   .connect(
-    'mongodb+srv://rami_mohamed:F5mib9GhY0Z3g6Aj@cluster0-ttchw.mongodb.net/node-angular?retryWrites=true&w=majority',
+    'mongodb+srv://rami_mohamed:' +
+      process.env.MONGO_ATLAS_PW +
+      '@cluster0-ttchw.mongodb.net/node-angular?retryWrites=true&w=majority',
     { useNewUrlParser: true }
   )
   .then(() => {
@@ -37,7 +39,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/posts",postRoutes);
-app.use("/api/user",userRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/user', userRoutes);
 
 module.exports = app;
